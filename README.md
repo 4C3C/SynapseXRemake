@@ -1,3 +1,3 @@
 # Synapse X Remake using the KRNL API 
-#Developed by 4C3C 🙂
-#VERSION: 3.0 
+# https://discord.gg/vK4tpVe5WW
+You will need to update KRNL API yourself
