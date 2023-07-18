@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+		<style type="text/css">
+			html,
+			body {
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+			}
+		</style>
+        <meta charset="utf-8" />
+        <title></title>
+    </head>
+    <body>
+		<div id="container" style="width:100%;height:100%;"></div>
+        <script src="vs/loader.js"></script>
+		<script type="text/javascript">
+			require.config({ paths: { 'vs': 'vs' } });
+			// API
+			var GetText;
+			var SetText;
+		    var SetTheme;
+			var SetScroll;
+			var ShowErr;
+			var Refresh;
+			
+			// Enablers
+			var SwitchMinimap;
+			var SwitchReadonly;
+			var SwitchRenderWhitespace;
+			var SwitchLinks;
+			var SwitchLineHeight;
+			var SwitchFontSize;
+			var SwitchFolding;
+			var SwitchAutoIndent;
+			var SwitchFontFamily;
+			var SwitchFontLigatures;
+			var AddIntellisense;
+			
+			// Variables
+			var editor;
+			var Proposals = [];
+			
+			require(['vs/editor/editor.main'], function () {
+				function getDependencyProposals() {
+					return Proposals;
+				}
+				
+				monaco.languages.registerCompletionItemProvider('lua', {
+					provideCompletionItems: function(model, position) {
+						return getDependencyProposals();
+					}
+				});
+				
+				monaco.editor.defineTheme('net-theme-light', {
+					base: 'vs',
+					inherit: true,
+					rules: [
+						{ token: 'global', foreground: '000000' },
+						{ token: 'keyword', foreground: 'ff6a00' },
+						{ token: 'comment', foreground: '666666' },
+						{ token: 'number', foreground: 'ffc600' },
+						{ token: 'string', foreground: 'ff8c3a' },
+					]
+				});
+				
+				monaco.editor.defineTheme('net-theme-dark', {
+					base: 'vs-dark',
+					inherit: true,
+					rules: [
+						{ token: 'global', foreground: 'FFFFFF', fontStyle: "bold" },
+						{ token: 'keyword', foreground: 'ff6a00', fontStyle: "bold" },
+						{ token: 'comment', foreground: '666666' },
+						{ token: 'number', foreground: 'ffc600' },
+						{ token: 'string', foreground: 'ff8c3a' },
+					]
+				});
+				
+				editor = monaco.editor.create(document.getElementById('container'), {
+					value: [
+						"--[[",
+						"	Lua Script",
+						"--]]",
+					].join('\n'),
+					language: 'lua',
+					theme: "net-theme-light",
+					folding: true,
+					scrollbar: {
+						verticalHasArrows: true,
+					},
+					dragAndDrop: true,
+					links: false,
+					minimap: {
+						enabled: false,
+					},
+					showFoldingControls: "always",
+					smoothScrolling: true,
+				});
+				
+				window.onresize = function() {
+					editor.layout();
+				};
+				
+				GetText = function() {
+					return editor.getValue();
+				}
+				
+				SetText = function(x) {
+					editor.setValue(x);
+				}
+				
+				SetTheme = function(themeName) {
+					if (themeName == "Dark") {
+						monaco.editor.setTheme("net-theme-dark");
+					}
+					if (themeName == "Light") {
+						monaco.editor.setTheme("net-theme-light");
+					}
+				}
+				
+				SwitchMinimap = function(flag) {
+					editor.updateOptions({
+						minimap: {
+							enabled: flag,
+						}
+					});
+				}
+				
+				SwitchReadonly = function(flag) {
+					editor.updateOptions({
+						readOnly: flag,
+					});
+				}
+				
+				SwitchRenderWhitespace = function(op) {
+					editor.updateOptions({
+						renderWhitespace: op,
+					});
+				}
+				
+				SwitchLinks = function(flag) {
+					editor.updateOptions({
+						links: flag,
+					});
+				}
+				
+				SwitchLineHeight = function(num) {
+					editor.updateOptions({
+						lineHeight: num,
+					});
+				}
+				
+				SwitchFontSize = function(num) {
+					editor.updateOptions({
+						fontSize: num,
+					});
+				}
+				
+				SwitchFolding = function(flag) {
+					editor.updateOptions({
+						folding: flag,
+					});
+				}
+				
+				SwitchAutoIndent = function(flag) {
+					editor.updateOptions({
+						autoIndent: flag,
+					});
+				}
+				
+				SwitchFontFamily = function(name) {
+					editor.updateOptions({
+						fontFamily: name,
+					});
+				}
+				
+				SwitchFontLigatures = function(flag) {
+					editor.updateOptions({
+						fontLigatures: flag,
+					});
+				}
+				
+				
+				ShowErr = function(line, column, endline, endcolumn, errMessage) {
+					editor.revealPositionInCenter({ lineNumber: line, column: column});
+					editor.deltaDecorations([], [
+						{ 
+							range: new monaco.Range(line, column, endline, endcolumn), 
+							options: { 
+								inlineClassName: 'squiggly-error',
+								hoverMessage: {
+									value: errMessage,
+								}
+							},
+						},
+					]);
+				}
+				
+				AddIntellisense = function(l, k, d, i) {
+					var t;
+					switch(k)
+					{
+						case "Class":
+							t = monaco.languages.CompletionItemKind.Class;
+							break;
+						case "Color":
+							t = monaco.languages.CompletionItemKind.Color;
+							break;
+						case "Constructor":
+							t = monaco.languages.CompletionItemKind.Constructor;
+							break;
+						case "Enum":
+							t = monaco.languages.CompletionItemKind.Enum;
+							break;
+						case "Field":
+							t = monaco.languages.CompletionItemKind.Field;
+							break;
+						case "File":
+							t = monaco.languages.CompletionItemKind.File;
+							break;
+						case "Folder":
+							t = monaco.languages.CompletionItemKind.Folder;
+							break;
+						case "Function":
+							t = monaco.languages.CompletionItemKind.Function;
+							break;
+						case "Interface":
+							t = monaco.languages.CompletionItemKind.Interface;
+							break;
+						case "Keyword":
+							t = monaco.languages.CompletionItemKind.Keyword;
+							break;
+						case "Method":
+							t = monaco.languages.CompletionItemKind.Method;
+							break;
+						case "Module":
+							t = monaco.languages.CompletionItemKind.Module;
+							break;
+						case "Property":
+							t = monaco.languages.CompletionItemKind.Property;
+							break;
+						case "Reference":
+							t = monaco.languages.CompletionItemKind.Reference;
+							break;
+						case "Snippet":
+							t = monaco.languages.CompletionItemKind.Snippet;
+							break;
+						case "Text":
+							t = monaco.languages.CompletionItemKind.Text;
+							break;
+						case "Unit":
+							t = monaco.languages.CompletionItemKind.Unit;
+							break;
+						case "Value":
+							t = monaco.languages.CompletionItemKind.Value;
+							break;
+						case "Variable":
+							t = monaco.languages.CompletionItemKind.Variable;
+							break;
+					}
+					
+					Proposals.push({
+						label: l,
+						kind: t,
+						detail: d,
+						insertText: i
+					});
+				}
+				
+				SetScroll = function(line) {
+					editor.revealLineInCenter({ lineNumber: line});
+				}
+				
+				Refresh = function() {
+					var text = getText();
+					setText("");
+					editor.trigger('keyboard', 'type', {text: text});
+				}
+			});
+		</script>
+    </body>
+</html>
